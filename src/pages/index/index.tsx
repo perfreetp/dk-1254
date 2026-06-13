@@ -93,6 +93,24 @@ const HomePage: React.FC = () => {
     return new Date(dueDate) < new Date();
   };
 
+  const getComicLendingStatus = (comicId: string): { status: 'none' | 'active' | 'overdue' | 'returned'; record?: LendingRecord } => {
+    const comic = dataService.getComicById(comicId);
+    if (!comic || !comic.lendingHistory || comic.lendingHistory.length === 0) {
+      return { status: 'none' };
+    }
+
+    const latestRecord = comic.lendingHistory[comic.lendingHistory.length - 1];
+    
+    if (latestRecord.isActive) {
+      return {
+        status: isOverdue(latestRecord.dueDate) ? 'overdue' : 'active',
+        record: latestRecord
+      };
+    }
+    
+    return { status: 'returned', record: latestRecord };
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -190,29 +208,40 @@ const HomePage: React.FC = () => {
         </View>
         <ScrollView className={styles.hotList} scrollX>
           {hotComics.length > 0 ? (
-            hotComics.map(comic => (
-              <View 
-                key={comic.id} 
-                className={styles.hotCard}
-                onClick={() => goToDetail(comic.id)}
-              >
-                <Image
-                  className={styles.hotCover}
-                  src={comic.coverImage}
-                  mode='aspectFill'
-                />
-                <View className={styles.hotInfo}>
-                  <Text className={styles.hotTitle}>
-                    {comic.title}
-                    {comic.isKey && <Text className={styles.keyBadge}>重点</Text>}
-                  </Text>
-                  <Text className={styles.hotMeta}>{comic.author}</Text>
-                  <Text className={styles.hotVolumes}>
-                    {comic.volumes.length}/{comic.totalVolumes}卷
-                  </Text>
+            hotComics.map(comic => {
+              const lendingStatus = getComicLendingStatus(comic.id);
+              return (
+                <View 
+                  key={comic.id} 
+                  className={styles.hotCard}
+                  onClick={() => goToDetail(comic.id)}
+                >
+                  <Image
+                    className={styles.hotCover}
+                    src={comic.coverImage}
+                    mode='aspectFill'
+                  />
+                  {lendingStatus.status !== 'none' && (
+                    <View className={styles.lendingStatusBadge}>
+                      <Text className={styles.lendingStatusText}>
+                        {lendingStatus.status === 'overdue' ? '逾期' : 
+                         lendingStatus.status === 'active' ? '借出' : '已还'}
+                      </Text>
+                    </View>
+                  )}
+                  <View className={styles.hotInfo}>
+                    <Text className={styles.hotTitle}>
+                      {comic.title}
+                      {comic.isKey && <Text className={styles.keyBadge}>重点</Text>}
+                    </Text>
+                    <Text className={styles.hotMeta}>{comic.author}</Text>
+                    <Text className={styles.hotVolumes}>
+                      {comic.volumes.length}/{comic.totalVolumes}卷
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <View className={styles.emptyHot}>
               <Text className={styles.emptyText}>暂无重点藏品</Text>
@@ -228,34 +257,47 @@ const HomePage: React.FC = () => {
         </View>
         <View className={styles.latestList}>
           {latestComics.length > 0 ? (
-            latestComics.map(comic => (
-              <View 
-                key={comic.id} 
-                className={styles.latestCard}
-                onClick={() => goToDetail(comic.id)}
-              >
-                <Image
-                  className={styles.latestCover}
-                  src={comic.coverImage}
-                  mode='aspectFill'
-                />
-                <View className={styles.latestInfo}>
-                  <View>
-                    <Text className={styles.latestTitle}>{comic.title}</Text>
-                    <Text className={styles.latestAuthor}>{comic.author}</Text>
+            latestComics.map(comic => {
+              const lendingStatus = getComicLendingStatus(comic.id);
+              return (
+                <View 
+                  key={comic.id} 
+                  className={styles.latestCard}
+                  onClick={() => goToDetail(comic.id)}
+                >
+                  <View className={styles.latestCoverWrapper}>
+                    <Image
+                      className={styles.latestCover}
+                      src={comic.coverImage}
+                      mode='aspectFill'
+                    />
+                    {lendingStatus.status !== 'none' && (
+                      <View className={`${styles.lendingStatusBadge} ${styles.lendingStatusBadgeSmall}`}>
+                        <Text className={`${styles.lendingStatusText} ${styles.lendingStatusTextSmall}`}>
+                          {lendingStatus.status === 'overdue' ? '逾期' : 
+                           lendingStatus.status === 'active' ? '借出' : '已还'}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  <View className={styles.latestMeta}>
-                    <Text className={styles.metaItem}>
-                      {comic.volumes.length}/{comic.totalVolumes}卷 · {comic.publisher}
-                    </Text>
-                    <Text className={styles.metaItem}>
-                      <Text style={{ color: '#D4A373', fontWeight: '600' }}>¥{comic.purchasePrice}</Text>
-                      · {comic.purchaseChannel}
-                    </Text>
+                  <View className={styles.latestInfo}>
+                    <View>
+                      <Text className={styles.latestTitle}>{comic.title}</Text>
+                      <Text className={styles.latestAuthor}>{comic.author}</Text>
+                    </View>
+                    <View className={styles.latestMeta}>
+                      <Text className={styles.metaItem}>
+                        {comic.volumes.length}/{comic.totalVolumes}卷 · {comic.publisher}
+                      </Text>
+                      <Text className={styles.metaItem}>
+                        <Text style={{ color: '#D4A373', fontWeight: '600' }}>¥{comic.purchasePrice}</Text>
+                        · {comic.purchaseChannel}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <View className={styles.emptyLatest}>
               <Text className={styles.emptyText}>暂无收藏，快去添加吧</Text>

@@ -270,6 +270,10 @@
   background: $color-bg-hover;
 }
 
+.hotCard {
+  position: relative;
+}
+
 .hotInfo {
   padding: $spacing-sm;
 }
@@ -335,6 +339,38 @@
   border-radius: $radius-md;
   background: $color-bg-hover;
   flex-shrink: 0;
+}
+
+.latestCoverWrapper {
+  position: relative;
+}
+
+.lendingStatusBadge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  background: $color-warning;
+  color: $color-text-white;
+  font-size: 18rpx;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-weight: $font-weight-semibold;
+  z-index: 1;
+}
+
+.lendingStatusBadgeSmall {
+  top: 8rpx;
+  right: 8rpx;
+  font-size: 16rpx;
+  padding: 2rpx 8rpx;
+}
+
+.lendingStatusText {
+  font-size: 18rpx;
+}
+
+.lendingStatusTextSmall {
+  font-size: 16rpx;
 }
 
 .latestInfo {
