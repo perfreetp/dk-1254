@@ -12,7 +12,18 @@ class InitDataService {
     if (existingComics.length === 0) {
       console.log('[InitData] No existing data, loading mock data...');
       mockComics.forEach(comic => {
-        dataService.saveComic(comic as StoredComic);
+        const storedComic: StoredComic = {
+          ...comic,
+          lendingHistory: comic.lendingInfo ? [{
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+            borrower: comic.lendingInfo.borrower,
+            lendDate: comic.lendingInfo.lendDate,
+            dueDate: comic.lendingInfo.dueDate,
+            isActive: !comic.lendingInfo.returned,
+            returnDate: comic.lendingInfo.returned ? comic.lendingInfo.dueDate : undefined
+          }] : []
+        };
+        dataService.saveComic(storedComic);
       });
     }
     

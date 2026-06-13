@@ -156,7 +156,8 @@ const AddPage: React.FC = () => {
       isKey,
       notes: notes.trim(),
       coverImage: coverImage || 'https://picsum.photos/id/200/300/400',
-      addDate: new Date().toISOString().split('T')[0]
+      addDate: new Date().toISOString().split('T')[0],
+      lendingHistory: []
     };
 
     const success = dataService.saveComic(newComic);

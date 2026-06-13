@@ -74,6 +74,145 @@
   color: $color-text-white;
 }
 
+.viewModeSection {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: 8rpx;
+}
+
+.viewModeButton {
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-md;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.viewModeButtonActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.yearMonthSelector {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.yearScroll {
+  white-space: nowrap;
+  margin-bottom: $spacing-sm;
+}
+
+.monthSelectorContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.yearButton {
+  display: inline-block;
+  min-width: 120rpx;
+  height: 64rpx;
+  border-radius: $radius-button;
+  background: $color-bg-hover;
+  margin-right: $spacing-sm;
+  padding: 0 $spacing-md;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.yearButtonActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.monthScroll {
+  white-space: nowrap;
+}
+
+.monthButton {
+  display: inline-block;
+  min-width: 100rpx;
+  height: 56rpx;
+  border-radius: $radius-button;
+  background: $color-bg-hover;
+  margin-right: $spacing-sm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.monthButtonActive {
+  background: $color-primary-light;
+  color: $color-primary-dark;
+}
+
+.currentStatsCard {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.currentStatsLabel {
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.currentStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+}
+
+.currentStatItem {
+  text-align: center;
+}
+
+.currentStatValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: 4rpx;
+}
+
+.currentStatLabel {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .header {
   margin-bottom: $spacing-lg;
 }

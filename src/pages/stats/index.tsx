@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Canvas, Image } from '@tarojs/components';
-import Taro, { useDidShow, useRouter } from '@tarojs/taro';
+import { View, Text, Canvas, Image, ScrollView } from '@tarojs/components';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -9,31 +9,64 @@ const StatsPage: React.FC = () => {
     totalComics: 0,
     totalSeries: 0,
     totalSpend: 0,
-    monthlySpend: 0,
-    monthlyChange: 12.5
+    monthlyComics: 0,
+    monthlySeries: 0,
+    monthlySpend: 0
   });
+  const [viewMode, setViewMode] = useState<'all' | 'year' | 'month'>('all');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [conditionData, setConditionData] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [shareImagePath, setShareImagePath] = useState<string>('');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   const calculateStats = () => {
     const allComics = dataService.getAllComics();
     
+    const years = new Set<number>();
+    allComics.forEach(comic => {
+      years.add(new Date(comic.addDate).getFullYear());
+    });
+    if (years.size === 0) {
+      years.add(new Date().getFullYear());
+    }
+    setAvailableYears(Array.from(years).sort((a, b) => b - a));
+
+    let filteredComics = allComics;
+    
+    if (viewMode === 'year') {
+      filteredComics = allComics.filter(comic => {
+        const addDate = new Date(comic.addDate);
+        return addDate.getFullYear() === selectedYear;
+      });
+    } else if (viewMode === 'month') {
+      filteredComics = allComics.filter(comic => {
+        const addDate = new Date(comic.addDate);
+        return addDate.getFullYear() === selectedYear && addDate.getMonth() + 1 === selectedMonth;
+      });
+    }
+
     const totalVolumes = allComics.reduce((sum, comic) => sum + comic.volumes.length, 0);
     const totalSeries = allComics.length;
     const totalSpend = allComics.reduce((sum, comic) => sum + comic.purchasePrice, 0);
     
+    const monthlyVolumes = filteredComics.reduce((sum, comic) => sum + comic.volumes.length, 0);
+    const monthlySeries = filteredComics.length;
+    const monthlySpend = filteredComics.reduce((sum, comic) => sum + comic.purchasePrice, 0);
+
     setStats({
       totalComics: totalVolumes,
       totalSeries,
       totalSpend,
-      monthlySpend: 1280,
-      monthlyChange: 12.5
+      monthlyComics: monthlyVolumes,
+      monthlySeries,
+      monthlySpend
     });
 
     const conditionCounts: any = {};
-    allComics.forEach(comic => {
+    filteredComics.forEach(comic => {
       conditionCounts[comic.condition] = (conditionCounts[comic.condition] || 0) + 1;
     });
     
@@ -44,25 +77,45 @@ const StatsPage: React.FC = () => {
     }));
     setConditionData(conditionList);
 
-    const months = ['3月', '4月', '5月', '6月', '7月', '8月'];
-    const monthData = [
-      { month: '3月', count: 5, spend: 500 },
-      { month: '4月', count: 8, spend: 800 },
-      { month: '5月', count: 3, spend: 300 },
-      { month: '6月', count: 12, spend: 1200 },
-      { month: '7月', count: 7, spend: 700 },
-      { month: '8月', count: 6, spend: 600 }
-    ];
+    const monthData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      
+      const monthComics = allComics.filter(comic => {
+        const addDate = new Date(comic.addDate);
+        return addDate.getFullYear() === year && addDate.getMonth() + 1 === month;
+      });
+      
+      const spend = monthComics.reduce((sum, comic) => sum + comic.purchasePrice, 0);
+      
+      monthData.push({
+        month: `${month}月`,
+        count: monthComics.length,
+        spend
+      });
+    }
     setMonthlyData(monthData);
   };
 
   useEffect(() => {
     calculateStats();
-  }, []);
+  }, [viewMode, selectedYear, selectedMonth]);
 
   useDidShow(() => {
     calculateStats();
   });
+
+  const getMonthLabel = () => {
+    if (viewMode === 'month') {
+      return `${selectedYear}年${selectedMonth}月`;
+    } else if (viewMode === 'year') {
+      return `${selectedYear}年`;
+    }
+    return '全部时间';
+  };
 
   const generateAndShowShareImage = () => {
     Taro.showLoading({ title: '生成中...' });
@@ -219,7 +272,7 @@ const StatsPage: React.FC = () => {
   const maxSpend = Math.max(...monthlyData.map(m => m.spend), 1);
 
   return (
-    <View className={styles.container}>
+    <ScrollView scrollY className={styles.container}>
       {showShareModal && (
         <View className={styles.shareModal} onClick={closeShareModal}>
           <View className={styles.shareModalContent} onClick={(e) => e.stopPropagation()}>
@@ -254,6 +307,90 @@ const StatsPage: React.FC = () => {
         <Text className={styles.subTitle}>了解你的收藏趋势和花费</Text>
       </View>
 
+      <View className={styles.viewModeSection}>
+        <View 
+          className={`${styles.viewModeButton} ${viewMode === 'all' ? styles.viewModeButtonActive : ''}`}
+          onClick={() => setViewMode('all')}
+        >
+          <Text>全部</Text>
+        </View>
+        <View 
+          className={`${styles.viewModeButton} ${viewMode === 'year' ? styles.viewModeButtonActive : ''}`}
+          onClick={() => setViewMode('year')}
+        >
+          <Text>按年</Text>
+        </View>
+        <View 
+          className={`${styles.viewModeButton} ${viewMode === 'month' ? styles.viewModeButtonActive : ''}`}
+          onClick={() => setViewMode('month')}
+        >
+          <Text>按月</Text>
+        </View>
+      </View>
+
+      {(viewMode === 'year' || viewMode === 'month') && (
+        <View className={styles.yearMonthSelector}>
+          {viewMode === 'year' && (
+            <ScrollView className={styles.yearScroll} scrollX>
+              {availableYears.map(year => (
+                <View
+                  key={year}
+                  className={`${styles.yearButton} ${selectedYear === year ? styles.yearButtonActive : ''}`}
+                  onClick={() => setSelectedYear(year)}
+                >
+                  <Text>{year}年</Text>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+          
+          {viewMode === 'month' && (
+            <View className={styles.monthSelectorContent}>
+              <ScrollView className={styles.yearScroll} scrollX>
+                {availableYears.map(year => (
+                  <View
+                    key={year}
+                    className={`${styles.yearButton} ${selectedYear === year ? styles.yearButtonActive : ''}`}
+                    onClick={() => setSelectedYear(year)}
+                  >
+                    <Text>{year}年</Text>
+                  </View>
+                ))}
+              </ScrollView>
+              <ScrollView className={styles.monthScroll} scrollX>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                  <View
+                    key={month}
+                    className={`${styles.monthButton} ${selectedMonth === month ? styles.monthButtonActive : ''}`}
+                    onClick={() => setSelectedMonth(month)}
+                  >
+                    <Text>{month}月</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      )}
+
+      <View className={styles.currentStatsCard}>
+        <Text className={styles.currentStatsLabel}>{getMonthLabel()}</Text>
+        <View className={styles.currentStatsGrid}>
+          <View className={styles.currentStatItem}>
+            <Text className={styles.currentStatValue}>{stats.monthlySeries}</Text>
+            <Text className={styles.currentStatLabel}>套装数</Text>
+          </View>
+          <View className={styles.currentStatItem}>
+            <Text className={styles.currentStatValue}>{stats.monthlyComics}</Text>
+            <Text className={styles.currentStatLabel}>总册数</Text>
+          </View>
+          <View className={styles.currentStatItem}>
+            <Text className={styles.currentStatValue}>¥{stats.monthlySpend}</Text>
+            <Text className={styles.currentStatLabel}>花费</Text>
+          </View>
+        </View>
+      </View>
+
       <View className={styles.statsOverview}>
         <View className={styles.overviewGrid}>
           <View className={styles.overviewCard}>
@@ -268,16 +405,6 @@ const StatsPage: React.FC = () => {
             <Text className={styles.overviewValue}>¥{stats.totalSpend}</Text>
             <Text className={styles.overviewLabel}>总花费</Text>
           </View>
-          <View className={styles.overviewCard}>
-            <Text className={styles.overviewValue}>¥{stats.monthlySpend}</Text>
-            <Text className={styles.overviewLabel}>本月花费</Text>
-          </View>
-        </View>
-
-        <View className={styles.changeCard}>
-          <Text className={styles.changeLabel}>相比上月</Text>
-          <Text className={styles.changeValue}>↑ {stats.monthlyChange}%</Text>
-          <Text className={styles.changeDesc}>收藏热情持续上涨 📈</Text>
         </View>
       </View>
 
@@ -307,7 +434,7 @@ const StatsPage: React.FC = () => {
               <View className={styles.barContainer}>
                 <View 
                   className={styles.bar}
-                  style={{ height: `${(item.spend / maxSpend) * 100}%` }}
+                  style={{ height: `${Math.max((item.spend / maxSpend) * 100, 5)}%` }}
                 />
               </View>
               <Text className={styles.barLabel}>{item.month}</Text>
@@ -362,7 +489,7 @@ const StatsPage: React.FC = () => {
           <Text>生成分享图</Text>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

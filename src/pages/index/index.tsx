@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
-import { dataService, StoredComic } from '../../services/dataService';
+import { dataService, StoredComic, LendingRecord } from '../../services/dataService';
 import { initDataService } from '../../services/initData';
 
 const HomePage: React.FC = () => {
@@ -15,6 +15,8 @@ const HomePage: React.FC = () => {
   const [latestComics, setLatestComics] = useState<StoredComic[]>([]);
   const [missingCount, setMissingCount] = useState(0);
   const [lendingCount, setLendingCount] = useState(0);
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [activeLendings, setActiveLendings] = useState<{ comic: StoredComic; record: LendingRecord }[]>([]);
 
   const loadData = () => {
     initDataService.initializeData();
@@ -45,10 +47,14 @@ const HomePage: React.FC = () => {
     });
     setMissingCount(missing);
 
-    const lending = allComics.filter(comic => 
-      comic.lendingInfo && !comic.lendingInfo.returned
+    const activeLendingsData = dataService.getActiveLendingRecords();
+    setActiveLendings(activeLendingsData);
+    setLendingCount(activeLendingsData.length);
+
+    const overdue = activeLendingsData.filter(({ record }) => 
+      new Date(record.dueDate) < new Date()
     ).length;
-    setLendingCount(lending);
+    setOverdueCount(overdue);
   };
 
   useEffect(() => {
@@ -83,6 +89,10 @@ const HomePage: React.FC = () => {
     });
   };
 
+  const isOverdue = (dueDate: string) => {
+    return new Date(dueDate) < new Date();
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -106,6 +116,32 @@ const HomePage: React.FC = () => {
           <Text className={styles.statLabel}>总花费(元)</Text>
         </View>
       </View>
+
+      {activeLendings.length > 0 && (
+        <View className={styles.lendingAlert}>
+          <Text className={styles.lendingAlertTitle}>📖 当前借出</Text>
+          <View className={styles.lendingList}>
+            {activeLendings.slice(0, 2).map(({ comic, record }) => (
+              <View key={record.id} className={styles.lendingItem} onClick={() => goToDetail(comic.id)}>
+                <View className={styles.lendingInfo}>
+                  <Text className={styles.lendingTitle}>{comic.title}</Text>
+                  <Text className={styles.lendingMeta}>
+                    借给 {record.borrower} · 应还 {record.dueDate}
+                  </Text>
+                </View>
+                {isOverdue(record.dueDate) && (
+                  <Text className={styles.overdueBadge}>已逾期</Text>
+                )}
+              </View>
+            ))}
+          </View>
+          {activeLendings.length > 2 && (
+            <Text className={styles.moreLending} onClick={goToLending}>
+              还有 {activeLendings.length - 2} 本借出中，点击查看全部
+            </Text>
+          )}
+        </View>
+      )}
 
       <View className={styles.searchSection} onClick={handleSearch}>
         <View className={styles.searchBox}>
@@ -139,6 +175,9 @@ const HomePage: React.FC = () => {
             </View>
             {lendingCount > 0 && (
               <Text className={styles.badge}>{lendingCount}</Text>
+            )}
+            {overdueCount > 0 && (
+              <Text className={styles.badgeOverdue}>{overdueCount}逾期</Text>
             )}
           </View>
         </View>

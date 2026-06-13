@@ -202,6 +202,201 @@
   line-height: 1.6;
 }
 
+.currentLendingCard {
+  background: linear-gradient(135deg, #FFF7E6 0%, #FFF3E0 100%);
+  border: 2rpx solid $color-warning;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.currentLendingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.currentLendingTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.overdueBadge {
+  background: $color-error;
+  color: $color-text-white;
+  font-size: 18rpx;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.currentLendingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  margin-bottom: $spacing-sm;
+}
+
+.currentLendingItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.currentLendingAction {
+  margin-top: $spacing-sm;
+}
+
+.returnButton {
+  width: 100%;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.returnForm {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.returnFormGroup {
+  margin-bottom: $spacing-sm;
+}
+
+.returnFormLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-bottom: 4rpx;
+  display: block;
+}
+
+.returnFormInput {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: 16rpx 20rpx;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.returnFormButtons {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.cancelReturnButton {
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.confirmReturnButton {
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.lendingHistorySection {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.historyTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.historyCard {
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-sm;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.historyIndex {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.historyStatus {
+  font-size: $font-size-xs;
+  color: $color-success;
+  background: rgba(82, 196, 26, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+}
+
+.historyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.historyItem {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 .lendingCard {
   background: $color-bg-hover;
   border-radius: $radius-md;

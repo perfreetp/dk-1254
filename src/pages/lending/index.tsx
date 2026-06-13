@@ -2,32 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
-import { dataService, StoredComic } from '../../services/dataService';
+import { dataService, StoredComic, LendingRecord } from '../../services/dataService';
 
-interface LendingRecord {
+interface LendingDisplayItem {
   comic: StoredComic;
-  lendingInfo: NonNullable<StoredComic['lendingInfo']>;
+  record: LendingRecord;
 }
 
 const LendingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'returned'>('active');
-  const [lendingRecords, setLendingRecords] = useState<LendingRecord[]>([]);
-  const [returnedRecords, setReturnedRecords] = useState<LendingRecord[]>([]);
+  const [lendingRecords, setLendingRecords] = useState<LendingDisplayItem[]>([]);
+  const [returnedRecords, setReturnedRecords] = useState<LendingDisplayItem[]>([]);
   const [activeCount, setActiveCount] = useState(0);
   const [returnedCount, setReturnedCount] = useState(0);
 
   const loadRecords = () => {
-    const allComics = dataService.getAllComics();
-    const active: LendingRecord[] = [];
-    const returned: LendingRecord[] = [];
+    const allLendingRecords = dataService.getAllLendingRecords();
+    const active: LendingDisplayItem[] = [];
+    const returned: LendingDisplayItem[] = [];
 
-    allComics.forEach(comic => {
-      if (comic.lendingInfo) {
-        if (comic.lendingInfo.returned) {
-          returned.push({ comic, lendingInfo: comic.lendingInfo });
-        } else {
-          active.push({ comic, lendingInfo: comic.lendingInfo });
-        }
+    allLendingRecords.forEach(({ comic, record }) => {
+      if (record.isActive) {
+        active.push({ comic, record });
+      } else {
+        returned.push({ comic, record });
       }
     });
 
@@ -45,21 +43,14 @@ const LendingPage: React.FC = () => {
     loadRecords();
   });
 
-  const handleMarkReturned = (comicId: string) => {
-    const comic = dataService.getComicById(comicId);
-    if (!comic || !comic.lendingInfo) return;
-
+  const handleMarkReturned = (comicId: string, recordId: string) => {
     Taro.showModal({
       title: '确认归还',
       content: '确认该藏品已归还吗？',
       success: (res) => {
         if (res.confirm) {
-          const lendingInfo: StoredComic['lendingInfo'] = {
-            ...comic.lendingInfo,
-            returned: true
-          };
-
-          const success = dataService.updateComicLending(comicId, lendingInfo);
+          const today = new Date().toISOString().split('T')[0];
+          const success = dataService.returnLendingRecord(comicId, recordId, today);
 
           if (success) {
             Taro.showToast({
@@ -83,7 +74,7 @@ const LendingPage: React.FC = () => {
     });
   };
 
-  const isOverdue = (dueDate: string) => {
+  const isOverdue = (dueDate: string): boolean => {
     return new Date(dueDate) < new Date();
   };
 
@@ -124,33 +115,33 @@ const LendingPage: React.FC = () => {
 
       {currentRecords.length > 0 ? (
         <View className={styles.lendingList}>
-          {currentRecords.map(record => (
-            <View key={record.comic.id} className={styles.lendingCard}>
+          {currentRecords.map(({ comic, record }) => (
+            <View key={record.id} className={styles.lendingCard}>
               <Image
                 className={styles.lendingCover}
-                src={record.comic.coverImage}
+                src={comic.coverImage}
                 mode='aspectFill'
               />
               <View className={styles.lendingInfo}>
                 <View className={styles.lendingTop}>
-                  <Text className={styles.lendingTitle}>{record.comic.title}</Text>
-                  <Text className={styles.lendingAuthor}>{record.comic.author}</Text>
+                  <Text className={styles.lendingTitle}>{comic.title}</Text>
+                  <Text className={styles.lendingAuthor}>{comic.author}</Text>
                 </View>
                 <View className={styles.lendingMeta}>
                   <Text className={styles.lendingItem}>
-                    借阅人：{record.lendingInfo.borrower}
+                    借阅人：{record.borrower}
                   </Text>
                   <Text className={styles.lendingItem}>
-                    借出日期：{record.lendingInfo.lendDate}
+                    借出日期：{record.lendDate}
                   </Text>
                   <Text className={styles.lendingItem}>
-                    应还日期：{record.lendingInfo.dueDate}
-                    {activeTab === 'active' && isOverdue(record.lendingInfo.dueDate) && (
+                    应还日期：{record.dueDate}
+                    {activeTab === 'active' && isOverdue(record.dueDate) && (
                       <Text className={`${styles.lendingStatus} ${styles.statusOverdue}`}>
                         已逾期
                       </Text>
                     )}
-                    {activeTab === 'active' && !isOverdue(record.lendingInfo.dueDate) && (
+                    {activeTab === 'active' && !isOverdue(record.dueDate) && (
                       <Text className={`${styles.lendingStatus} ${styles.statusNormal}`}>
                         正常
                       </Text>
@@ -161,12 +152,22 @@ const LendingPage: React.FC = () => {
                       </Text>
                     )}
                   </Text>
+                  {activeTab === 'returned' && record.returnDate && (
+                    <Text className={styles.lendingItem}>
+                      实际归还：{record.returnDate}
+                    </Text>
+                  )}
+                  {activeTab === 'returned' && record.notes && (
+                    <Text className={styles.lendingItem}>
+                      备注：{record.notes}
+                    </Text>
+                  )}
                 </View>
                 {activeTab === 'active' && (
                   <View className={styles.actionArea}>
                     <View 
                       className={`${styles.actionButton} ${styles.actionButtonSecondary}`}
-                      onClick={() => handleMarkReturned(record.comic.id)}
+                      onClick={() => handleMarkReturned(comic.id, record.id)}
                     >
                       <Text>标记归还</Text>
                     </View>

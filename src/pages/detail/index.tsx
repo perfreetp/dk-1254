@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, Input } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
-import { dataService, StoredComic } from '../../services/dataService';
+import { dataService, StoredComic, LendingRecord } from '../../services/dataService';
 
 const DetailPage: React.FC = () => {
   const [comic, setComic] = useState<StoredComic | null>(null);
   const [missingVolumes, setMissingVolumes] = useState<number[]>([]);
   const [showLendingForm, setShowLendingForm] = useState(false);
+  const [showReturnForm, setShowReturnForm] = useState<string | null>(null);
   const [borrower, setBorrower] = useState('');
   const [lendDate, setLendDate] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [returnNotes, setReturnNotes] = useState('');
 
   const loadComic = () => {
     const { id } = Taro.getCurrentInstance().router?.params || {};
@@ -70,14 +73,12 @@ const DetailPage: React.FC = () => {
 
     if (!comic) return;
 
-    const lendingInfo: StoredComic['lendingInfo'] = {
+    const success = dataService.addLendingRecord(comic.id, {
       borrower: borrower.trim(),
       lendDate: lendDate.trim(),
       dueDate: dueDate.trim(),
-      returned: false
-    };
-
-    const success = dataService.updateComicLending(comic.id, lendingInfo);
+      isActive: true
+    });
 
     if (success) {
       Taro.showToast({
@@ -101,34 +102,71 @@ const DetailPage: React.FC = () => {
     }
   };
 
-  const handleMarkReturned = () => {
-    if (!comic || !comic.lendingInfo) return;
+  const toggleReturnForm = (recordId: string) => {
+    setShowReturnForm(showReturnForm === recordId ? null : recordId);
+    if (showReturnForm !== recordId) {
+      setReturnDate('');
+      setReturnNotes('');
+    }
+  };
 
-    Taro.showModal({
-      title: '确认归还',
-      content: '确认该藏品已归还吗？',
-      success: (res) => {
-        if (res.confirm) {
-          const lendingInfo: StoredComic['lendingInfo'] = {
-            ...comic.lendingInfo,
-            returned: true
-          };
+  const handleSubmitReturn = (recordId: string) => {
+    if (!returnDate.trim()) {
+      Taro.showToast({
+        title: '请填写归还日期',
+        icon: 'none'
+      });
+      return;
+    }
 
-          const success = dataService.updateComicLending(comic.id, lendingInfo);
+    if (!comic) return;
 
-          if (success) {
-            Taro.showToast({
-              title: '已标记归还',
-              icon: 'success'
-            });
-            
-            setTimeout(() => {
-              loadComic();
-            }, 1500);
-          }
-        }
-      }
-    });
+    const success = dataService.returnLendingRecord(
+      comic.id,
+      recordId,
+      returnDate.trim(),
+      returnNotes.trim() || undefined
+    );
+
+    if (success) {
+      Taro.showToast({
+        title: '归还登记成功',
+        icon: 'success'
+      });
+      
+      setReturnDate('');
+      setReturnNotes('');
+      setShowReturnForm(null);
+      
+      setTimeout(() => {
+        loadComic();
+      }, 1500);
+    } else {
+      Taro.showToast({
+        title: '登记失败',
+        icon: 'none'
+      });
+    }
+  };
+
+  const getCurrentLending = (): LendingRecord | null => {
+    if (!comic || !comic.lendingHistory) return null;
+    const activeRecords = comic.lendingHistory.filter(r => r.isActive);
+    return activeRecords.length > 0 ? activeRecords[0] : null;
+  };
+
+  const getLendingHistory = (): LendingRecord[] => {
+    if (!comic || !comic.lendingHistory) return [];
+    return [...comic.lendingHistory].sort((a, b) => 
+      new Date(b.lendDate).getTime() - new Date(a.lendDate).getTime()
+    );
+  };
+
+  const isOverdue = (record: LendingRecord): boolean => {
+    if (record.isActive && new Date(record.dueDate) < new Date()) {
+      return true;
+    }
+    return false;
   };
 
   if (!comic) {
@@ -140,6 +178,8 @@ const DetailPage: React.FC = () => {
   }
 
   const progress = (comic.volumes.length / comic.totalVolumes) * 100;
+  const currentLending = getCurrentLending();
+  const lendingHistory = getLendingHistory();
 
   return (
     <View className={styles.container}>
@@ -240,26 +280,114 @@ const DetailPage: React.FC = () => {
         )}
 
         <View className={styles.section}>
-          <Text className={styles.sectionTitle}>🤝 借阅信息</Text>
+          <Text className={styles.sectionTitle}>🤝 借阅台账</Text>
           
-          {comic.lendingInfo && !comic.lendingInfo.returned ? (
-            <View className={styles.lendingCard}>
-              <View className={styles.lendingHeader}>
-                <Text className={styles.lendingTitle}>当前借出中</Text>
-                <Text className={styles.lendingStatus}>未归还</Text>
-              </View>
-              <View className={styles.lendingInfo}>
-                <Text className={styles.lendingItem}>借阅人：{comic.lendingInfo.borrower}</Text>
-                <Text className={styles.lendingItem}>借出日期：{comic.lendingInfo.lendDate}</Text>
-                <Text className={styles.lendingItem}>应还日期：{comic.lendingInfo.dueDate}</Text>
-              </View>
-              <View className={styles.actionArea}>
-                <View className={styles.actionButton} onClick={handleMarkReturned}>
-                  <Text>标记归还</Text>
+          {currentLending && (
+            <View className={styles.currentLendingCard}>
+              <View className={styles.currentLendingHeader}>
+                <View className={styles.currentLendingTitle}>
+                  <Text>📖 当前借出</Text>
+                  {isOverdue(currentLending) && (
+                    <Text className={styles.overdueBadge}>⚠️ 已逾期</Text>
+                  )}
                 </View>
               </View>
+              <View className={styles.currentLendingInfo}>
+                <Text className={styles.currentLendingItem}>
+                  借阅人：{currentLending.borrower}
+                </Text>
+                <Text className={styles.currentLendingItem}>
+                  借出日期：{currentLending.lendDate}
+                </Text>
+                <Text className={styles.currentLendingItem}>
+                  应还日期：{currentLending.dueDate}
+                </Text>
+              </View>
+              <View className={styles.currentLendingAction}>
+                <View 
+                  className={styles.returnButton}
+                  onClick={() => toggleReturnForm(currentLending.id)}
+                >
+                  <Text>登记归还</Text>
+                </View>
+              </View>
+              
+              {showReturnForm === currentLending.id && (
+                <View className={styles.returnForm}>
+                  <View className={styles.returnFormGroup}>
+                    <Text className={styles.returnFormLabel}>实际归还日期 *</Text>
+                    <Input
+                      className={styles.returnFormInput}
+                      placeholder='格式: 2024-03-20'
+                      value={returnDate}
+                      onInput={(e) => setReturnDate(e.detail.value)}
+                    />
+                  </View>
+                  <View className={styles.returnFormGroup}>
+                    <Text className={styles.returnFormLabel}>备注（选填）</Text>
+                    <Input
+                      className={styles.returnFormInput}
+                      placeholder='记录归还情况...'
+                      value={returnNotes}
+                      onInput={(e) => setReturnNotes(e.detail.value)}
+                    />
+                  </View>
+                  <View className={styles.returnFormButtons}>
+                    <View 
+                      className={styles.cancelReturnButton}
+                      onClick={() => toggleReturnForm(currentLending.id)}
+                    >
+                      <Text>取消</Text>
+                    </View>
+                    <View 
+                      className={styles.confirmReturnButton}
+                      onClick={() => handleSubmitReturn(currentLending.id)}
+                    >
+                      <Text>确认归还</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
             </View>
-          ) : showLendingForm ? (
+          )}
+
+          {lendingHistory.length > 0 ? (
+            <View className={styles.lendingHistorySection}>
+              <Text className={styles.historyTitle}>📋 历史记录</Text>
+              {lendingHistory.map((record, index) => (
+                !record.isActive && (
+                  <View key={record.id} className={styles.historyCard}>
+                    <View className={styles.historyHeader}>
+                      <Text className={styles.historyIndex}>第{index + 1}次</Text>
+                      <Text className={styles.historyStatus}>已归还</Text>
+                    </View>
+                    <View className={styles.historyInfo}>
+                      <Text className={styles.historyItem}>借阅人：{record.borrower}</Text>
+                      <Text className={styles.historyItem}>借出日期：{record.lendDate}</Text>
+                      <Text className={styles.historyItem}>应还日期：{record.dueDate}</Text>
+                      {record.returnDate && (
+                        <Text className={styles.historyItem}>实际归还：{record.returnDate}</Text>
+                      )}
+                      {record.notes && (
+                        <Text className={styles.historyItem}>备注：{record.notes}</Text>
+                      )}
+                    </View>
+                  </View>
+                )
+              ))}
+            </View>
+          ) : null}
+
+          {!currentLending && !showLendingForm && (
+            <View className={styles.lendingEmpty}>
+              <Text className={styles.lendingEmptyText}>暂无借阅记录</Text>
+              <View className={styles.actionButton} onClick={toggleLendingForm}>
+                <Text>登记借阅</Text>
+              </View>
+            </View>
+          )}
+
+          {showLendingForm && (
             <View className={styles.lendingForm}>
               <View className={styles.formGroup}>
                 <Text className={styles.formLabel}>借阅人 *</Text>
@@ -295,13 +423,6 @@ const DetailPage: React.FC = () => {
                 <View className={styles.submitButtonForm} onClick={handleSubmitLending}>
                   <Text>确认登记</Text>
                 </View>
-              </View>
-            </View>
-          ) : (
-            <View className={styles.lendingEmpty}>
-              <Text className={styles.lendingEmptyText}>暂无借阅记录</Text>
-              <View className={styles.actionButton} onClick={toggleLendingForm}>
-                <Text>登记借阅</Text>
               </View>
             </View>
           )}
