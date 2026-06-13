@@ -1,0 +1,304 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FEFAE0 0%, $color-bg-page 100%);
+  padding-bottom: 120rpx;
+}
+
+.coverSection {
+  width: 100%;
+  height: 500rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  background: $color-bg-hover;
+}
+
+.backButton {
+  position: absolute;
+  top: 40rpx;
+  left: $page-padding;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-white;
+  font-size: 32rpx;
+}
+
+.mainInfo {
+  background: $color-bg-card;
+  margin: -60rpx $page-padding 0;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 1;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  flex: 1;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-right: $spacing-md;
+  @include text-ellipsis;
+}
+
+.keyBadge {
+  background: $color-gold;
+  color: $color-text-white;
+  font-size: 20rpx;
+  padding: 8rpx 16rpx;
+  border-radius: $radius-xs;
+  font-weight: $font-weight-semibold;
+  flex-shrink: 0;
+}
+
+.author {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.metaLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.metaValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.progressSection {
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.progressLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.progressValue {
+  font-size: $font-size-md;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+}
+
+.progressBar {
+  height: 12rpx;
+  background: $color-border;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: $spacing-sm;
+}
+
+.progressFill {
+  height: 100%;
+  background: $color-primary;
+  border-radius: 6rpx;
+  transition: width $transition-base;
+}
+
+.missingCount {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.section {
+  background: $color-bg-card;
+  margin: $spacing-md $page-padding 0;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.volumeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.volumeTag {
+  min-width: 64rpx;
+  height: 48rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.volumeTagMissing {
+  background: $color-error;
+  color: $color-text-white;
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.notesSection {
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+}
+
+.notesText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.lendingCard {
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.lendingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lendingTitle {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.lendingStatus {
+  font-size: $font-size-xs;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-error;
+  color: $color-text-white;
+}
+
+.lendingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.lendingItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actionButtons {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+  padding: 0 $page-padding;
+}
+
+.actionButton {
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.actionButtonSecondary {
+  background: $color-bg-card;
+  border: 2rpx solid $color-primary;
+  color: $color-primary;
+}

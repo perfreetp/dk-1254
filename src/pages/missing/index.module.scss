@@ -1,0 +1,169 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FEFAE0 0%, $color-bg-page 100%);
+  padding: $page-padding;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subTitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.statsCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-error;
+  margin-bottom: 8rpx;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tipsCard {
+  background: linear-gradient(135deg, $color-gold-light 0%, #FFF9E6 100%);
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.tipsIcon {
+  font-size: 32rpx;
+  margin-top: 4rpx;
+}
+
+.tipsText {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-primary-dark;
+  line-height: 1.6;
+}
+
+.seriesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.seriesCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.seriesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.seriesInfo {
+  flex: 1;
+}
+
+.seriesTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.seriesAuthor {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.seriesProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.missingCount {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-error;
+}
+
+.missingLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.missingVolumes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.volumeTag {
+  min-width: 72rpx;
+  height: 56rpx;
+  border-radius: $radius-sm;
+  background: rgba(255, 77, 79, 0.1);
+  border: 2rpx solid rgba(255, 77, 79, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  text-align: center;
+}

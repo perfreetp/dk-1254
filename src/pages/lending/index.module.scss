@@ -1,0 +1,246 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FEFAE0 0%, $color-bg-page 100%);
+  padding: $page-padding;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subTitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.statsCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin-bottom: 8rpx;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tabSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.tab {
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-md;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.tabActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.lendingList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.lendingCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+  display: flex;
+  gap: $spacing-md;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.lendingCover {
+  width: 120rpx;
+  height: 160rpx;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.lendingInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.lendingTop {
+  margin-bottom: 8rpx;
+}
+
+.lendingTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.lendingAuthor {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+}
+
+.lendingMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.lendingItem {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.lendingStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: $font-size-xs;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  margin-left: auto;
+}
+
+.statusOverdue {
+  background: rgba(255, 77, 79, 0.1);
+  color: $color-error;
+}
+
+.statusNormal {
+  background: rgba(82, 196, 26, 0.1);
+  color: $color-success;
+}
+
+.statusReturned {
+  background: $color-bg-hover;
+  color: $color-text-tertiary;
+}
+
+.actionArea {
+  margin-top: $spacing-md;
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionButton {
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.actionButtonSecondary {
+  background: $color-bg-card;
+  border: 2rpx solid $color-primary;
+  color: $color-primary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+.addButton {
+  width: 400rpx;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
