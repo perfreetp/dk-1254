@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, Input } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -9,11 +9,8 @@ const DetailPage: React.FC = () => {
   const [missingVolumes, setMissingVolumes] = useState<number[]>([]);
   const [showLendingForm, setShowLendingForm] = useState(false);
   const [borrower, setBorrower] = useState('');
+  const [lendDate, setLendDate] = useState('');
   const [dueDate, setDueDate] = useState('');
-
-  useEffect(() => {
-    loadComic();
-  }, []);
 
   const loadComic = () => {
     const { id } = Taro.getCurrentInstance().router?.params || {};
@@ -34,6 +31,14 @@ const DetailPage: React.FC = () => {
     setMissingVolumes(missing);
   };
 
+  useEffect(() => {
+    loadComic();
+  }, []);
+
+  useDidShow(() => {
+    loadComic();
+  });
+
   const handleBack = () => {
     Taro.navigateBack();
   };
@@ -47,10 +52,15 @@ const DetailPage: React.FC = () => {
 
   const toggleLendingForm = () => {
     setShowLendingForm(!showLendingForm);
+    if (!showLendingForm) {
+      setBorrower('');
+      setLendDate('');
+      setDueDate('');
+    }
   };
 
   const handleSubmitLending = () => {
-    if (!borrower.trim() || !dueDate.trim()) {
+    if (!borrower.trim() || !lendDate.trim() || !dueDate.trim()) {
       Taro.showToast({
         title: '请填写完整信息',
         icon: 'none'
@@ -62,7 +72,7 @@ const DetailPage: React.FC = () => {
 
     const lendingInfo: StoredComic['lendingInfo'] = {
       borrower: borrower.trim(),
-      lendDate: new Date().toISOString().split('T')[0],
+      lendDate: lendDate.trim(),
       dueDate: dueDate.trim(),
       returned: false
     };
@@ -76,6 +86,7 @@ const DetailPage: React.FC = () => {
       });
       
       setBorrower('');
+      setLendDate('');
       setDueDate('');
       setShowLendingForm(false);
       
@@ -260,10 +271,19 @@ const DetailPage: React.FC = () => {
                 />
               </View>
               <View className={styles.formGroup}>
+                <Text className={styles.formLabel}>借出日期 *</Text>
+                <Input
+                  className={styles.formInput}
+                  placeholder='格式: 2024-03-15'
+                  value={lendDate}
+                  onInput={(e) => setLendDate(e.detail.value)}
+                />
+              </View>
+              <View className={styles.formGroup}>
                 <Text className={styles.formLabel}>应还日期 *</Text>
                 <Input
                   className={styles.formInput}
-                  placeholder='格式: 2024-12-31'
+                  placeholder='格式: 2024-04-15'
                   value={dueDate}
                   onInput={(e) => setDueDate(e.detail.value)}
                 />

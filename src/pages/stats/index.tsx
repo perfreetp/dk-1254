@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Canvas } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import { View, Text, Canvas, Image } from '@tarojs/components';
+import Taro, { useDidShow, useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -14,10 +14,8 @@ const StatsPage: React.FC = () => {
   });
   const [conditionData, setConditionData] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
-
-  useEffect(() => {
-    calculateStats();
-  }, []);
+  const [shareImagePath, setShareImagePath] = useState<string>('');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const calculateStats = () => {
     const allComics = dataService.getAllComics();
@@ -58,7 +56,15 @@ const StatsPage: React.FC = () => {
     setMonthlyData(monthData);
   };
 
-  const generateShareImage = () => {
+  useEffect(() => {
+    calculateStats();
+  }, []);
+
+  useDidShow(() => {
+    calculateStats();
+  });
+
+  const generateAndShowShareImage = () => {
     Taro.showLoading({ title: '生成中...' });
     
     const canvasWidth = 600;
@@ -68,9 +74,9 @@ const StatsPage: React.FC = () => {
     query.select('#shareCanvas')
       .fields({ node: true, size: true })
       .exec((res) => {
-        if (res && res[0]) {
+        if (res && res[0] && res[0].node) {
           const canvas = res[0].node;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext('2d') as any;
           
           if (ctx) {
             canvas.width = canvasWidth;
@@ -154,18 +160,59 @@ const StatsPage: React.FC = () => {
             ctx.textAlign = 'center';
             ctx.fillText(`生成于 ${new Date().toLocaleDateString()}`, canvasWidth / 2, canvasHeight - 50);
             
-            Taro.hideLoading();
-            Taro.showToast({
-              title: '分享图已生成',
-              icon: 'success'
+            Taro.canvasToTempFilePath({
+              canvas,
+              success: (res) => {
+                Taro.hideLoading();
+                setShareImagePath(res.tempFilePath);
+                setShowShareModal(true);
+              },
+              fail: () => {
+                Taro.hideLoading();
+                Taro.showToast({
+                  title: '生成失败',
+                  icon: 'none'
+                });
+              }
             });
           }
+        } else {
+          Taro.hideLoading();
+          Taro.showToast({
+            title: '生成失败',
+            icon: 'none'
+          });
         }
       });
   };
 
+  const saveToAlbum = () => {
+    if (!shareImagePath) return;
+    
+    Taro.saveImageToPhotosAlbum({
+      filePath: shareImagePath,
+      success: () => {
+        Taro.showToast({
+          title: '保存成功',
+          icon: 'success'
+        });
+        setShowShareModal(false);
+      },
+      fail: () => {
+        Taro.showToast({
+          title: '保存失败',
+          icon: 'none'
+        });
+      }
+    });
+  };
+
   const handleShare = () => {
-    generateShareImage();
+    generateAndShowShareImage();
+  };
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
   };
 
   const maxCount = Math.max(...conditionData.map(c => c.count), 1);
@@ -173,6 +220,29 @@ const StatsPage: React.FC = () => {
 
   return (
     <View className={styles.container}>
+      {showShareModal && (
+        <View className={styles.shareModal} onClick={closeShareModal}>
+          <View className={styles.shareModalContent} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.shareModalTitle}>分享图预览</Text>
+            {shareImagePath && (
+              <Image 
+                className={styles.sharePreviewImage}
+                src={shareImagePath}
+                mode='aspectFit'
+              />
+            )}
+            <View className={styles.shareModalButtons}>
+              <View className={styles.shareModalButton} onClick={closeShareModal}>
+                <Text>关闭</Text>
+              </View>
+              <View className={`${styles.shareModalButton} ${styles.shareModalButtonPrimary}`} onClick={saveToAlbum}>
+                <Text>保存到相册</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+      
       <Canvas 
         type="2d" 
         id="shareCanvas" 

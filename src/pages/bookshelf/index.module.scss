@@ -51,15 +51,21 @@
 
 .filterSection {
   background: $color-bg-card;
-  padding: $spacing-md $page-padding;
+  padding: $spacing-sm $page-padding;
   border-bottom: 1rpx solid $color-divider;
+}
+
+.filterLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
 }
 
 .filterScroll {
   display: flex;
   gap: $spacing-sm;
   overflow-x: auto;
-  @include scroll-x-container;
+  white-space: nowrap;
 
   &::-webkit-scrollbar {
     display: none;

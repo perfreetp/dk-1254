@@ -7,6 +7,73 @@
   padding-bottom: 120rpx;
 }
 
+.shareModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.shareModalContent {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.shareModalTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  text-align: center;
+  margin-bottom: $spacing-md;
+  display: block;
+}
+
+.sharePreviewImage {
+  width: 500rpx;
+  height: 666rpx;
+  border-radius: $radius-md;
+  margin: 0 auto $spacing-md;
+  display: block;
+}
+
+.shareModalButtons {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.shareModalButton {
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.shareModalButtonPrimary {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
 .header {
   margin-bottom: $spacing-lg;
 }

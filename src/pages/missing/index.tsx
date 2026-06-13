@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -17,10 +17,6 @@ const MissingPage: React.FC = () => {
   const [missingSeries, setMissingSeries] = useState<MissingSeries[]>([]);
   const [totalMissing, setTotalMissing] = useState(0);
   const [seriesCount, setSeriesCount] = useState(0);
-
-  useEffect(() => {
-    calculateMissing();
-  }, []);
 
   const calculateMissing = () => {
     const allComics = dataService.getAllComics();
@@ -52,6 +48,14 @@ const MissingPage: React.FC = () => {
     setTotalMissing(total);
     setSeriesCount(missing.length);
   };
+
+  useEffect(() => {
+    calculateMissing();
+  }, []);
+
+  useDidShow(() => {
+    calculateMissing();
+  });
 
   return (
     <View className={styles.container}>

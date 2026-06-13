@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 import { initDataService } from '../../services/initData';
@@ -54,6 +54,10 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useDidShow(() => {
+    loadData();
+  });
 
   const handleSearch = () => {
     Taro.navigateTo({

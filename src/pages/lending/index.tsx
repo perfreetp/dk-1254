@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -15,10 +15,6 @@ const LendingPage: React.FC = () => {
   const [returnedRecords, setReturnedRecords] = useState<LendingRecord[]>([]);
   const [activeCount, setActiveCount] = useState(0);
   const [returnedCount, setReturnedCount] = useState(0);
-
-  useEffect(() => {
-    loadRecords();
-  }, []);
 
   const loadRecords = () => {
     const allComics = dataService.getAllComics();
@@ -40,6 +36,14 @@ const LendingPage: React.FC = () => {
     setActiveCount(active.length);
     setReturnedCount(returned.length);
   };
+
+  useEffect(() => {
+    loadRecords();
+  }, []);
+
+  useDidShow(() => {
+    loadRecords();
+  });
 
   const handleMarkReturned = (comicId: string) => {
     const comic = dataService.getComicById(comicId);

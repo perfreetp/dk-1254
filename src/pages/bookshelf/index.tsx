@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { dataService, StoredComic } from '../../services/dataService';
 
@@ -11,16 +11,21 @@ const BookshelfPage: React.FC = () => {
   const [selectedAuthor, setSelectedAuthor] = useState('全部');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'price'>('date');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     const allComics = dataService.getAllComics();
     setComics(allComics);
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useDidShow(() => {
+    loadData();
+  });
+
   const genres = ['全部', '热血', '冒险', '悬疑', '黑暗', '未分类'];
+  
   const getAuthors = () => {
     const allComics = dataService.getAllComics();
     const authors = new Set(allComics.map(c => c.author));
@@ -29,10 +34,15 @@ const BookshelfPage: React.FC = () => {
 
   const filteredComics = comics.filter(comic => {
     const matchSearch = !searchKeyword || 
-      comic.title.includes(searchKeyword) || 
-      comic.author.includes(searchKeyword);
+      comic.title.toLowerCase().includes(searchKeyword.toLowerCase()) || 
+      comic.author.toLowerCase().includes(searchKeyword.toLowerCase());
+    
     const matchGenre = selectedGenre === '全部' || comic.genre === selectedGenre;
-    const matchAuthor = selectedAuthor === '全部' || comic.author.includes(selectedAuthor);
+    
+    const matchAuthor = selectedAuthor === '全部' || 
+      comic.author.toLowerCase() === selectedAuthor.toLowerCase() ||
+      comic.author.toLowerCase().includes(selectedAuthor.toLowerCase());
+    
     return matchSearch && matchGenre && matchAuthor;
   });
 
@@ -63,6 +73,10 @@ const BookshelfPage: React.FC = () => {
     });
   };
 
+  const handleAuthorChange = (author: string) => {
+    setSelectedAuthor(author);
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -81,6 +95,7 @@ const BookshelfPage: React.FC = () => {
       </View>
 
       <View className={styles.filterSection}>
+        <Text className={styles.filterLabel}>题材筛选：</Text>
         <ScrollView className={styles.filterScroll} scrollX>
           {genres.map(genre => (
             <View
@@ -89,6 +104,21 @@ const BookshelfPage: React.FC = () => {
               onClick={() => setSelectedGenre(genre)}
             >
               <Text>{genre}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View className={styles.filterSection}>
+        <Text className={styles.filterLabel}>作者筛选：</Text>
+        <ScrollView className={styles.filterScroll} scrollX>
+          {getAuthors().map(author => (
+            <View
+              key={author}
+              className={`${styles.filterTag} ${selectedAuthor === author ? styles.filterTagActive : ''}`}
+              onClick={() => handleAuthorChange(author)}
+            >
+              <Text>{author === '全部' ? author : author.split('&')[0].split('·')[0].split(' ')[0]}</Text>
             </View>
           ))}
         </ScrollView>
