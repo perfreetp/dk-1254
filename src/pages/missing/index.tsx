@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockComics } from '../../data/comics';
+import { dataService, StoredComic } from '../../services/dataService';
 
 interface MissingSeries {
   id: string;
@@ -23,10 +23,11 @@ const MissingPage: React.FC = () => {
   }, []);
 
   const calculateMissing = () => {
+    const allComics = dataService.getAllComics();
     const missing: MissingSeries[] = [];
     let total = 0;
 
-    mockComics.forEach(comic => {
+    allComics.forEach(comic => {
       const missingVolumes: number[] = [];
       for (let i = 1; i <= comic.totalVolumes; i++) {
         if (!comic.volumes.includes(i)) {

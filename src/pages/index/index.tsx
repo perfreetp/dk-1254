@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockComics } from '../../data/comics';
-import { Comic } from '../../types/comic';
+import { dataService, StoredComic } from '../../services/dataService';
+import { initDataService } from '../../services/initData';
 
 const HomePage: React.FC = () => {
   const [stats, setStats] = useState({
@@ -11,19 +11,19 @@ const HomePage: React.FC = () => {
     totalSeries: 0,
     totalSpend: 0
   });
-  const [hotComics, setHotComics] = useState<Comic[]>([]);
-  const [latestComics, setLatestComics] = useState<Comic[]>([]);
+  const [hotComics, setHotComics] = useState<StoredComic[]>([]);
+  const [latestComics, setLatestComics] = useState<StoredComic[]>([]);
   const [missingCount, setMissingCount] = useState(0);
   const [lendingCount, setLendingCount] = useState(0);
 
-  useEffect(() => {
-    calculateStats();
-  }, []);
-
-  const calculateStats = () => {
-    const totalVolumes = mockComics.reduce((sum, comic) => sum + comic.volumes.length, 0);
-    const totalSeries = mockComics.length;
-    const totalSpend = mockComics.reduce((sum, comic) => sum + comic.purchasePrice, 0);
+  const loadData = () => {
+    initDataService.initializeData();
+    
+    const allComics = dataService.getAllComics();
+    
+    const totalVolumes = allComics.reduce((sum, comic) => sum + comic.volumes.length, 0);
+    const totalSeries = allComics.length;
+    const totalSpend = allComics.reduce((sum, comic) => sum + comic.purchasePrice, 0);
     
     setStats({
       totalComics: totalVolumes,
@@ -31,25 +31,29 @@ const HomePage: React.FC = () => {
       totalSpend
     });
 
-    const keyComics = mockComics.filter(comic => comic.isKey);
+    const keyComics = allComics.filter(comic => comic.isKey);
     setHotComics(keyComics.slice(0, 5));
 
-    const sorted = [...mockComics].sort((a, b) => 
+    const sorted = [...allComics].sort((a, b) => 
       new Date(b.addDate).getTime() - new Date(a.addDate).getTime()
     );
     setLatestComics(sorted.slice(0, 3));
 
     let missing = 0;
-    mockComics.forEach(comic => {
+    allComics.forEach(comic => {
       missing += comic.totalVolumes - comic.volumes.length;
     });
     setMissingCount(missing);
 
-    const lending = mockComics.filter(comic => 
+    const lending = allComics.filter(comic => 
       comic.lendingInfo && !comic.lendingInfo.returned
     ).length;
     setLendingCount(lending);
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleSearch = () => {
     Taro.navigateTo({
@@ -139,69 +143,81 @@ const HomePage: React.FC = () => {
       <View className={styles.hotSection}>
         <View className={styles.sectionTitle}>
           <Text>重点藏品</Text>
-          <Text className={styles.viewMore}>查看全部</Text>
+          <Text className={styles.viewMore} onClick={handleSearch}>查看全部</Text>
         </View>
         <ScrollView className={styles.hotList} scrollX>
-          {hotComics.map(comic => (
-            <View 
-              key={comic.id} 
-              className={styles.hotCard}
-              onClick={() => goToDetail(comic.id)}
-            >
-              <Image
-                className={styles.hotCover}
-                src={comic.coverImage}
-                mode='aspectFill'
-              />
-              <View className={styles.hotInfo}>
-                <Text className={styles.hotTitle}>
-                  {comic.title}
-                  {comic.isKey && <Text className={styles.keyBadge}>重点</Text>}
-                </Text>
-                <Text className={styles.hotMeta}>{comic.author}</Text>
-                <Text className={styles.hotVolumes}>
-                  {comic.volumes.length}/{comic.totalVolumes}卷
-                </Text>
+          {hotComics.length > 0 ? (
+            hotComics.map(comic => (
+              <View 
+                key={comic.id} 
+                className={styles.hotCard}
+                onClick={() => goToDetail(comic.id)}
+              >
+                <Image
+                  className={styles.hotCover}
+                  src={comic.coverImage}
+                  mode='aspectFill'
+                />
+                <View className={styles.hotInfo}>
+                  <Text className={styles.hotTitle}>
+                    {comic.title}
+                    {comic.isKey && <Text className={styles.keyBadge}>重点</Text>}
+                  </Text>
+                  <Text className={styles.hotMeta}>{comic.author}</Text>
+                  <Text className={styles.hotVolumes}>
+                    {comic.volumes.length}/{comic.totalVolumes}卷
+                  </Text>
+                </View>
               </View>
+            ))
+          ) : (
+            <View className={styles.emptyHot}>
+              <Text className={styles.emptyText}>暂无重点藏品</Text>
             </View>
-          ))}
+          )}
         </ScrollView>
       </View>
 
       <View className={styles.latestSection}>
         <View className={styles.sectionTitle}>
           <Text>最新添加</Text>
-          <Text className={styles.viewMore}>查看全部</Text>
+          <Text className={styles.viewMore} onClick={handleSearch}>查看全部</Text>
         </View>
         <View className={styles.latestList}>
-          {latestComics.map(comic => (
-            <View 
-              key={comic.id} 
-              className={styles.latestCard}
-              onClick={() => goToDetail(comic.id)}
-            >
-              <Image
-                className={styles.latestCover}
-                src={comic.coverImage}
-                mode='aspectFill'
-              />
-              <View className={styles.latestInfo}>
-                <View>
-                  <Text className={styles.latestTitle}>{comic.title}</Text>
-                  <Text className={styles.latestAuthor}>{comic.author}</Text>
-                </View>
-                <View className={styles.latestMeta}>
-                  <Text className={styles.metaItem}>
-                    {comic.volumes.length}/{comic.totalVolumes}卷 · {comic.publisher}
-                  </Text>
-                  <Text className={styles.metaItem}>
-                    <Text style={{ color: '#D4A373', fontWeight: '600' }}>¥{comic.purchasePrice}</Text>
-                    · {comic.purchaseChannel}
-                  </Text>
+          {latestComics.length > 0 ? (
+            latestComics.map(comic => (
+              <View 
+                key={comic.id} 
+                className={styles.latestCard}
+                onClick={() => goToDetail(comic.id)}
+              >
+                <Image
+                  className={styles.latestCover}
+                  src={comic.coverImage}
+                  mode='aspectFill'
+                />
+                <View className={styles.latestInfo}>
+                  <View>
+                    <Text className={styles.latestTitle}>{comic.title}</Text>
+                    <Text className={styles.latestAuthor}>{comic.author}</Text>
+                  </View>
+                  <View className={styles.latestMeta}>
+                    <Text className={styles.metaItem}>
+                      {comic.volumes.length}/{comic.totalVolumes}卷 · {comic.publisher}
+                    </Text>
+                    <Text className={styles.metaItem}>
+                      <Text style={{ color: '#D4A373', fontWeight: '600' }}>¥{comic.purchasePrice}</Text>
+                      · {comic.purchaseChannel}
+                    </Text>
+                  </View>
                 </View>
               </View>
+            ))
+          ) : (
+            <View className={styles.emptyLatest}>
+              <Text className={styles.emptyText}>暂无收藏，快去添加吧</Text>
             </View>
-          ))}
+          )}
         </View>
       </View>
     </View>

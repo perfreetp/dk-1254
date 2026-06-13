@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
+import { dataService, StoredComic } from '../../services/dataService';
+
+interface ScanResult {
+  title: string;
+  author?: string;
+  publisher?: string;
+  totalVolumes?: number;
+}
 
 const AddPage: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -15,23 +23,82 @@ const AddPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [selectedVolumes, setSelectedVolumes] = useState<number[]>([]);
   const [coverImage, setCoverImage] = useState('');
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<StoredComic | null>(null);
+
+  useEffect(() => {
+    if (scanResult) {
+      setTitle(scanResult.title || '');
+      setAuthor(scanResult.author || '');
+      setPublisher(scanResult.publisher || '');
+      setTotalVolumes(scanResult.totalVolumes?.toString() || '');
+    }
+  }, [scanResult]);
+
+  const checkDuplicate = (newTitle: string) => {
+    if (!newTitle.trim()) {
+      setDuplicateWarning(null);
+      return;
+    }
+    
+    const existing = dataService.checkDuplicateTitle(newTitle);
+    if (existing) {
+      setDuplicateWarning(existing);
+    } else {
+      setDuplicateWarning(null);
+    }
+  };
+
+  const handleTitleInput = (value: string) => {
+    setTitle(value);
+    checkDuplicate(value);
+  };
 
   const handleScanCode = () => {
     Taro.scanCode({
       success: (res) => {
-        console.log('[Add] Scan code success:', res);
-        Taro.showToast({
-          title: '扫码功能暂未开放',
-          icon: 'none'
-        });
+        console.log('[Add] Scan success:', res);
+        
+        if (res.result) {
+          const mockScanData: ScanResult = generateMockScanData(res.result);
+          setScanResult(mockScanData);
+          
+          Taro.showModal({
+            title: '扫描成功',
+            content: `检测到: ${mockScanData.title}\n是否使用此信息继续录入?`,
+            confirmText: '使用',
+            cancelText: '取消',
+            success: (modalRes) => {
+              if (!modalRes.confirm) {
+                setScanResult(null);
+                setTitle('');
+                setAuthor('');
+                setPublisher('');
+                setTotalVolumes('');
+              }
+            }
+          });
+        }
       },
       fail: () => {
         Taro.showToast({
-          title: '扫码失败',
+          title: '扫码失败，请重试',
           icon: 'none'
         });
       }
     });
+  };
+
+  const generateMockScanData = (scanText: string): ScanResult => {
+    const titles = ['进击的巨人', '咒术回战', 'ONE PIECE', '鬼灭之刃', '链锯人', '死亡笔记', '钢之炼金术师'];
+    const randomTitle = titles[Math.floor(Math.random() * titles.length)];
+    
+    return {
+      title: scanText || randomTitle,
+      author: '作者待定',
+      publisher: '出版社待定',
+      totalVolumes: Math.floor(Math.random() * 20) + 5
+    };
   };
 
   const handleChooseImage = () => {
@@ -74,22 +141,69 @@ const AddPage: React.FC = () => {
       return;
     }
 
-    Taro.showToast({
-      title: '添加成功',
-      icon: 'success'
-    });
+    const newComic: StoredComic = {
+      id: dataService.generateId(),
+      title: title.trim(),
+      author: author.trim() || '未知作者',
+      publisher: publisher.trim() || '未知出版社',
+      volumes: selectedVolumes,
+      totalVolumes: parseInt(totalVolumes) || selectedVolumes.length,
+      coverUrl: coverImage || 'https://picsum.photos/id/200/300/400',
+      purchasePrice: parseFloat(purchasePrice) || 0,
+      purchaseChannel: purchaseChannel.trim() || '未知渠道',
+      condition: condition as StoredComic['condition'],
+      genre: '未分类',
+      isKey,
+      notes: notes.trim(),
+      coverImage: coverImage || 'https://picsum.photos/id/200/300/400',
+      addDate: new Date().toISOString().split('T')[0]
+    };
 
-    setTimeout(() => {
-      Taro.switchTab({
-        url: '/pages/index/index'
+    const success = dataService.saveComic(newComic);
+
+    if (success) {
+      Taro.showToast({
+        title: '添加成功',
+        icon: 'success'
       });
-    }, 1500);
+
+      setTimeout(() => {
+        Taro.switchTab({
+          url: '/pages/index/index'
+        });
+      }, 1500);
+    } else {
+      Taro.showToast({
+        title: '保存失败',
+        icon: 'none'
+      });
+    }
+  };
+
+  const handleUseExisting = () => {
+    if (duplicateWarning) {
+      Taro.showModal({
+        title: '已有收藏',
+        content: `"${duplicateWarning.title}" 已收藏\n作者: ${duplicateWarning.author}\n已有卷数: ${duplicateWarning.volumes.length}/${duplicateWarning.totalVolumes}卷\n\n是否查看详情?`,
+        confirmText: '查看详情',
+        cancelText: '继续添加',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({
+              url: `/pages/detail/index?id=${duplicateWarning.id}`
+            });
+          } else {
+            setDuplicateWarning(null);
+          }
+        }
+      });
+    }
   };
 
   const renderVolumeGrid = () => {
     const total = parseInt(totalVolumes) || 0;
     const volumes = [];
-    for (let i = 1; i <= Math.min(total, 30); i++) {
+    for (let i = 1; i <= Math.min(total, 50); i++) {
       volumes.push(i);
     }
 
@@ -114,6 +228,21 @@ const AddPage: React.FC = () => {
         <Text className={styles.title}>添加新藏品</Text>
         <Text className={styles.subTitle}>记录你的每一本珍贵收藏</Text>
       </View>
+
+      {duplicateWarning && (
+        <View className={styles.warningCard} onClick={handleUseExisting}>
+          <View className={styles.warningContent}>
+            <Text className={styles.warningIcon}>⚠️</Text>
+            <View className={styles.warningText}>
+              <Text className={styles.warningTitle}>发现已有收藏</Text>
+              <Text className={styles.warningDesc}>
+                「{duplicateWarning.title}」已收藏 {duplicateWarning.volumes.length}/{duplicateWarning.totalVolumes}卷
+              </Text>
+              <Text className={styles.warningAction}>点击查看详情</Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       <View className={styles.quickActions}>
         <View className={styles.actionGrid}>
@@ -157,7 +286,7 @@ const AddPage: React.FC = () => {
             className={styles.input}
             placeholder='请输入漫画名称'
             value={title}
-            onInput={(e) => setTitle(e.detail.value)}
+            onInput={(e) => handleTitleInput(e.detail.value)}
           />
         </View>
 

@@ -2,22 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockComics } from '../../data/comics';
-import { Comic } from '../../types/comic';
+import { dataService, StoredComic } from '../../services/dataService';
 
 const BookshelfPage: React.FC = () => {
-  const [comics, setComics] = useState<Comic[]>([]);
+  const [comics, setComics] = useState<StoredComic[]>([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('全部');
   const [selectedAuthor, setSelectedAuthor] = useState('全部');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'price'>('date');
 
   useEffect(() => {
-    setComics(mockComics);
+    loadData();
   }, []);
 
-  const genres = ['全部', '热血', '冒险', '悬疑', '黑暗'];
-  const authors = ['全部', '谏山创', '芥见下々', '尾田荣一郎', '吾峠呼世晴', '藤本树', '大场鸫&小畑健', '荒川弘', '大久保笃'];
+  const loadData = () => {
+    const allComics = dataService.getAllComics();
+    setComics(allComics);
+  };
+
+  const genres = ['全部', '热血', '冒险', '悬疑', '黑暗', '未分类'];
+  const getAuthors = () => {
+    const allComics = dataService.getAllComics();
+    const authors = new Set(allComics.map(c => c.author));
+    return ['全部', ...Array.from(authors)];
+  };
 
   const filteredComics = comics.filter(comic => {
     const matchSearch = !searchKeyword || 
@@ -81,20 +89,6 @@ const BookshelfPage: React.FC = () => {
               onClick={() => setSelectedGenre(genre)}
             >
               <Text>{genre}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View className={styles.filterSection}>
-        <ScrollView className={styles.filterScroll} scrollX>
-          {authors.map(author => (
-            <View
-              key={author}
-              className={`${styles.filterTag} ${selectedAuthor === author ? styles.filterTagActive : ''}`}
-              onClick={() => setSelectedAuthor(author)}
-            >
-              <Text>{author === '全部' ? author : author.split('&')[0].split('·')[0]}</Text>
             </View>
           ))}
         </ScrollView>

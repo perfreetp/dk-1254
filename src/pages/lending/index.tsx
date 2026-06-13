@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockComics } from '../../data/comics';
-import { Comic } from '../../types/comic';
+import { dataService, StoredComic } from '../../services/dataService';
 
 interface LendingRecord {
-  comic: Comic;
-  lendingInfo: NonNullable<Comic['lendingInfo']>;
+  comic: StoredComic;
+  lendingInfo: NonNullable<StoredComic['lendingInfo']>;
 }
 
 const LendingPage: React.FC = () => {
@@ -22,10 +21,11 @@ const LendingPage: React.FC = () => {
   }, []);
 
   const loadRecords = () => {
+    const allComics = dataService.getAllComics();
     const active: LendingRecord[] = [];
     const returned: LendingRecord[] = [];
 
-    mockComics.forEach(comic => {
+    allComics.forEach(comic => {
       if (comic.lendingInfo) {
         if (comic.lendingInfo.returned) {
           returned.push({ comic, lendingInfo: comic.lendingInfo });
@@ -42,18 +42,31 @@ const LendingPage: React.FC = () => {
   };
 
   const handleMarkReturned = (comicId: string) => {
+    const comic = dataService.getComicById(comicId);
+    if (!comic || !comic.lendingInfo) return;
+
     Taro.showModal({
       title: '确认归还',
       content: '确认该藏品已归还吗？',
       success: (res) => {
         if (res.confirm) {
-          Taro.showToast({
-            title: '已标记归还',
-            icon: 'success'
-          });
-          setTimeout(() => {
-            loadRecords();
-          }, 1500);
+          const lendingInfo: StoredComic['lendingInfo'] = {
+            ...comic.lendingInfo,
+            returned: true
+          };
+
+          const success = dataService.updateComicLending(comicId, lendingInfo);
+
+          if (success) {
+            Taro.showToast({
+              title: '已标记归还',
+              icon: 'success'
+            });
+            
+            setTimeout(() => {
+              loadRecords();
+            }, 1500);
+          }
         }
       }
     });
@@ -61,7 +74,7 @@ const LendingPage: React.FC = () => {
 
   const handleAddLending = () => {
     Taro.showToast({
-      title: '借阅登记功能开发中',
+      title: '请在详情页登记借阅',
       icon: 'none'
     });
   };

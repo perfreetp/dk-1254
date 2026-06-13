@@ -23,6 +23,55 @@
   color: $color-text-tertiary;
 }
 
+.warningCard {
+  background: linear-gradient(135deg, #FFF7E6 0%, #FFF3E0 100%);
+  border: 2rpx solid $color-warning;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.warningContent {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-start;
+}
+
+.warningIcon {
+  font-size: 48rpx;
+  flex-shrink: 0;
+}
+
+.warningText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.warningTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+}
+
+.warningDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.warningAction {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
 .quickActions {
   margin-bottom: $spacing-lg;
 }
@@ -153,13 +202,7 @@
   background: $color-bg-hover;
   margin-bottom: $spacing-md;
   position: relative;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: $radius-lg;
-  }
+  overflow: hidden;
 }
 
 .removeCover {
